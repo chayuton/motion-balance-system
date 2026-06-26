@@ -58,6 +58,8 @@ services:
     container_name: web-ui
     ports:
       - "8080:80"
+    environment:
+      - PORT=80
     depends_on:
       - pose-engine
     deploy:
