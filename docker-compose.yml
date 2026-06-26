@@ -1,0 +1,64 @@
+
+services:
+  # ============================================
+  # Container 1: Pose Engine (Backend API)
+  # ============================================
+  pose-engine:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: pose-engine
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount video files from host
+      - ./videos:/app/videos
+    environment:
+      # MediaPipe parameters
+      - MIN_DETECTION_CONFIDENCE=0.5
+      - MIN_TRACKING_CONFIDENCE=0.5
+      - MODEL_COMPLEXITY=1
+      # Balance analysis thresholds
+      - TRUNK_ANGLE_THRESHOLD=45.0
+      - COM_MARGIN=0.05
+      - VELOCITY_THRESHOLD=0.3
+      # Fall detection
+      - FALL_CONFIRM_FRAMES=3
+      - FALL_COOLDOWN_SECONDS=3.0
+      # Video source (use directory mode by default)
+      - VIDEO_SOURCE=0
+      - VIDEO_DIRECTORY=/app/videos
+      # Processing
+      - FPS_LIMIT=30
+      - JPEG_QUALITY=80
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 1G
+    restart: unless-stopped
+    # Uncomment the following for webcam access on Linux:
+    # devices:
+    #   - /dev/video0:/dev/video0
+
+  # ============================================
+  # Container 2: Web Interface (Frontend)
+  # ============================================
+  web-ui:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: web-ui
+    ports:
+      - "8080:80"
+    depends_on:
+      - pose-engine
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    restart: unless-stopped

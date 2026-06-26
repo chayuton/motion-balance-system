@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Motion & Balance Loss Detection System — Real-time pose estimation and fall detection dashboard">
+    <meta name="theme-color" content="#0a0a0f">
+    <meta name="color-scheme" content="dark">
+    <title>Motion & Balance Detection — Real-Time Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏃</text></svg>">
+</head>
+<body>
+    <!-- ═══════════════════════ HEADER BAR ═══════════════════════ -->
+    <header class="header-bar">
+        <div class="header-left">
+            <div class="logo-mark">
+                <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="5" r="2"/>
+                    <path d="M10 22V18L7 15V11L10 8H14L17 11V15L14 18V22"/>
+                    <path d="M7 15H17"/>
+                </svg>
+                <h1>Motion &amp; Balance Detection</h1>
+            </div>
+            <span class="header-badge">LIVE</span>
+        </div>
+        <div class="header-right">
+            <div class="connection-status" id="connectionStatus">
+                <span class="status-dot" id="statusDot"></span>
+                <span class="status-text" id="statusText">Disconnected</span>
+            </div>
+            <div class="header-divider"></div>
+            <div class="clock" id="clock">--:--:--</div>
+        </div>
+    </header>
+
+    <!-- ═══════════════════════ MAIN LAYOUT ═══════════════════════ -->
+    <main class="dashboard">
+        <!-- ─────────── LEFT PANEL: VIDEO ─────────── -->
+        <section class="panel-video">
+            <div class="video-container" id="videoContainer">
+                <canvas id="videoCanvas" width="1280" height="720"></canvas>
+                <!-- State overlay -->
+                <div class="video-overlay-state" id="videoOverlayState">
+                    <span class="overlay-state-text" id="overlayStateText">NORMAL</span>
+                </div>
+                <!-- Top-left info overlay -->
+                <div class="video-overlay-info">
+                    <span class="overlay-fps" id="overlayFps">0 FPS</span>
+                </div>
+                <!-- Controls overlay -->
+                <div class="video-overlay-controls">
+                    <button class="btn-icon" id="btnFullscreen" title="Toggle fullscreen">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                    </button>
+                </div>
+                <!-- No-signal placeholder -->
+                <div class="video-placeholder" id="videoPlaceholder">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="placeholder-icon">
+                        <rect x="2" y="3" width="20" height="14" rx="2"/>
+                        <path d="M8 21h8m-4-4v4"/>
+                    </svg>
+                    <p>No video signal</p>
+                    <span>Connect a source or upload a video to begin</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ─────────── RIGHT PANEL: METRICS ─────────── -->
+        <aside class="panel-metrics">
+            <!-- Status Card -->
+            <div class="card card-status" id="cardStatus" data-state="normal">
+                <div class="card-label">SYSTEM STATUS</div>
+                <div class="status-display" id="statusDisplay">
+                    <span class="status-icon" id="statusIcon">✓</span>
+                    <span class="status-value" id="statusValue">NORMAL</span>
+                </div>
+                <div class="status-subtext" id="statusSubtext">All metrics within safe range</div>
+            </div>
+
+            <!-- Metric Gauges -->
+            <div class="metrics-grid">
+                <!-- Trunk Angle -->
+                <div class="card card-metric" id="cardTrunkAngle">
+                    <div class="metric-header">
+                        <span class="metric-label">Trunk Angle</span>
+                        <span class="metric-unit">degrees</span>
+                    </div>
+                    <div class="gauge-bar">
+                        <div class="gauge-track">
+                            <div class="gauge-fill" id="gaugeTrunkAngle" style="width: 0%"></div>
+                            <div class="gauge-danger-zone" style="left: 55.5%; width: 44.5%"></div>
+                        </div>
+                        <div class="gauge-markers">
+                            <span>0°</span>
+                            <span>45°</span>
+                            <span>90°</span>
+                        </div>
+                    </div>
+                    <div class="metric-value-row">
+                        <span class="metric-big-value" id="valueTrunkAngle">0.0</span>
+                        <span class="metric-big-unit">°</span>
+                    </div>
+                </div>
+
+                <!-- CoM Deviation -->
+                <div class="card card-metric" id="cardComDeviation">
+                    <div class="metric-header">
+                        <span class="metric-label">CoM Deviation</span>
+                        <span class="metric-unit">normalized</span>
+                    </div>
+                    <div class="gauge-bar">
+                        <div class="gauge-track">
+                            <div class="gauge-fill" id="gaugeComDeviation" style="width: 0%"></div>
+                        </div>
+                        <div class="gauge-markers">
+                            <span>0.0</span>
+                            <span>0.5</span>
+                            <span>1.0</span>
+                        </div>
+                    </div>
+                    <div class="metric-value-row">
+                        <span class="metric-big-value" id="valueComDeviation">0.000</span>
+                    </div>
+                </div>
+
+                <!-- Y-Velocity -->
+                <div class="card card-metric" id="cardVelocity">
+                    <div class="metric-header">
+                        <span class="metric-label">Y-Velocity</span>
+                        <span class="metric-unit">normalized</span>
+                    </div>
+                    <div class="gauge-bar">
+                        <div class="gauge-track">
+                            <div class="gauge-fill" id="gaugeVelocity" style="width: 0%"></div>
+                        </div>
+                        <div class="gauge-markers">
+                            <span>0.0</span>
+                            <span>0.5</span>
+                            <span>1.0</span>
+                        </div>
+                    </div>
+                    <div class="metric-value-row">
+                        <span class="metric-big-value" id="valueVelocity">0.000</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FPS Counter -->
+            <div class="card card-fps">
+                <div class="fps-row">
+                    <span class="fps-label">Performance</span>
+                    <div class="fps-value-wrap">
+                        <span class="fps-value" id="fpsValue">0</span>
+                        <span class="fps-unit">FPS</span>
+                    </div>
+                </div>
+                <div class="fps-bar">
+                    <div class="fps-bar-fill" id="fpsBar" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Alert Log -->
+            <div class="card card-alerts">
+                <div class="alerts-header">
+                    <span class="alerts-title">Alert Log</span>
+                    <button class="btn-text" id="btnClearAlerts">Clear</button>
+                </div>
+                <div class="alerts-list" id="alertsList">
+                    <div class="alerts-empty" id="alertsEmpty">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="alerts-empty-icon">
+                            <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
+                            <path d="M9 12l2 2 4-4"/>
+                        </svg>
+                        <span>No alerts yet</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <!-- ═══════════════════════ BOTTOM CONTROL BAR ═══════════════════════ -->
+    <footer class="control-bar">
+        <div class="control-section">
+            <label class="control-label">Video Source</label>
+            <div class="control-row">
+                <select class="select-input" id="selectVideoSource">
+                    <option value="">— Select source —</option>
+                </select>
+                <button class="btn btn-sm btn-outline" id="btnRefreshVideos" title="Refresh list">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-svg"><path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="control-divider"></div>
+
+        <div class="control-section control-sliders">
+            <div class="slider-group">
+                <label class="control-label">Trunk Angle Threshold <span class="slider-val" id="sliderTrunkVal">50°</span></label>
+                <input type="range" class="range-input" id="sliderTrunk" min="20" max="80" value="50" step="1">
+            </div>
+            <div class="slider-group">
+                <label class="control-label">Velocity Threshold <span class="slider-val" id="sliderVelocityVal">0.30</span></label>
+                <input type="range" class="range-input" id="sliderVelocity" min="0.05" max="1.0" value="0.30" step="0.01">
+            </div>
+            <div class="slider-group">
+                <label class="control-label">CoM Margin <span class="slider-val" id="sliderComVal">0.15</span></label>
+                <input type="range" class="range-input" id="sliderCom" min="0.01" max="0.50" value="0.15" step="0.01">
+            </div>
+        </div>
+
+        <div class="control-divider"></div>
+
+        <div class="control-section control-actions">
+            <button class="btn btn-primary" id="btnStartStop">
+                <svg viewBox="0 0 24 24" fill="currentColor" class="btn-svg"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                <span>Start</span>
+            </button>
+            <label class="btn btn-outline btn-upload" id="btnUploadLabel">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-svg"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                <span>Upload</span>
+                <input type="file" id="inputUpload" accept="video/*" hidden>
+            </label>
+            <button class="btn btn-ghost" id="btnSoundToggle" title="Toggle alert sound">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-svg" id="soundIcon"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+            </button>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>

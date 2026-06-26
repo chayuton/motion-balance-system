@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+*.class
+venv/
+.env
+.idea/
+.vscode/
+frontend/videos/*
+backend/videos/*
+videos/*
+!videos/.gitkeep
