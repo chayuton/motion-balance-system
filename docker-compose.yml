@@ -13,6 +13,10 @@ services:
     volumes:
       # Mount video files from host
       - ./videos:/app/videos
+    networks:
+      default:
+        aliases:
+          - pose-engine.railway.internal
     environment:
       # MediaPipe parameters
       - MIN_DETECTION_CONFIDENCE=0.5
