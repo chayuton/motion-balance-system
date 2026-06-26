@@ -47,24 +47,3 @@ services:
     # Uncomment the following for webcam access on Linux:
     # devices:
     #   - /dev/video0:/dev/video0
-
-  # ============================================
-  # Container 2: Web Interface (Frontend)
-  # ============================================
-  web-ui:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: web-ui
-    ports:
-      - "8080:80"
-    environment:
-      - PORT=80
-    depends_on:
-      - pose-engine
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 512M
-    restart: unless-stopped

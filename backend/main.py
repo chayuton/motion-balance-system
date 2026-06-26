@@ -18,7 +18,8 @@ import cv2
 import numpy as np
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from config import config
 from models import (
@@ -125,6 +126,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+import os
+os.makedirs("static", exist_ok=True)
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+@app.get("/")
+async def read_index():
+    return FileResponse("static/index.html")
 
 
 # --- Background Frame Processing ---
