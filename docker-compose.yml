@@ -5,7 +5,7 @@ services:
   # ============================================
   pose-engine:
     build:
-      context: ./backend
+      context: .
       dockerfile: Dockerfile
     container_name: pose-engine
     ports:
